@@ -1,4 +1,5 @@
-<?php
+<?php	
+require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'gateways' . DIRECTORY_SEPARATOR . 'class.pmprogateway.php');
 	//load classes init method
 	add_action('init', array('PMProGateway_clickandpledge', 'init'));
 
@@ -56,9 +57,9 @@
 			{
 				add_action('pmpro_checkout_preheader', array('PMProGateway_clickandpledge', 'pmpro_checkout_preheader'));
 				add_filter('pmpro_checkout_order', array('PMProGateway_clickandpledge', 'pmpro_checkout_order'));
-				add_filter('pmpro_include_billing_address_fields', array('PMProGateway_clickandpledge', 'pmpro_include_billing_address_fields'));
+				//add_filter('pmpro_include_billing_address_fields', array('PMProGateway_clickandpledge', 'pmpro_include_billing_address_fields'));				add_filter('pmpro_include_billing_address_fields', '__return_false');
 				add_filter('pmpro_include_cardtype_field', array('PMProGateway_clickandpledge', 'pmpro_include_billing_address_fields'));
-				add_filter('pmpro_include_payment_information_fields', array('PMProGateway_clickandpledge', 'pmpro_include_payment_information_fields'));
+				//add_filter('pmpro_include_payment_information_fields', array('PMProGateway_clickandpledge', 'pmpro_include_payment_information_fields'));				add_filter('pmpro_include_payment_information_fields', '__return_true');
 			}
 		}
 
@@ -74,7 +75,7 @@
 
 			return $gateways;
 		}
-
+		static function pmpro_checkout_preheader()		{			global $gateway, $pmpro_level;		}				/**		 * Check settings if billing address should be shown.		 * @since 1.8		 */				static function pmpro_include_billing_address_fields($include)		{			$include = true;			return $include;		}				/**		 * Use our own payment fields at checkout. (Remove the name attributes.)				 * @since 1.8		 */		/*		static function pmpro_include_payment_information_fields($include)		{			//global vars			//global $pmpro_requirebilling, $pmpro_show_discount_code, $discount_code, $CardType, $AccountNumber, $ExpirationMonth, $ExpirationYear;			//return true;		}*/
 		/**
 		 * Get a list of payment options that the example gateway needs/supports.
 		 *
@@ -477,14 +478,6 @@
 		{
 		}
 		
-		/**
-		 * Use our own payment fields at checkout. (Remove the name attributes.)		
-		 * @since 1.8
-		 */
-		static function pmpro_include_payment_information_fields($include)
-		{
-		}
-
 		/**
 		 * Fields shown on edit user page
 		 *
@@ -996,7 +989,7 @@
 			$applicationid=$application->appendChild($applicationid);
 			$applicationname=$dom->createElement('Name','CnP_WordPress_PaidMembershipsPro'); 
 			$applicationid=$application->appendChild($applicationname);
-			$applicationversion=$dom->createElement('Version','1.0.1');
+			$applicationversion=$dom->createElement('Version','1.0.2');
 			$applicationversion=$application->appendChild($applicationversion);
 		
 			$request = $dom->createElement('Request', '');

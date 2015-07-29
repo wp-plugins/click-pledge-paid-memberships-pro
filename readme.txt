@@ -7,9 +7,9 @@ Author URI:        http://www.clickandpledge.com
 Author:            Click & Pledge
 Requires at least: 3.5 
 Tested up to:      4.2.2
-Tested up to:      1.8.4.4 (Paid Memberships Pro)
-Stable tag: 1.0.1
-Version:           1.0.1
+Tested up to:      1.8.4.5 (Paid Memberships Pro)
+Stable tag: 1.0.2
+Version:           1.0.2
 License: GPLv2 or later
 
 == Description ==
@@ -61,6 +61,10 @@ Test CCV: 111 <br>
 == Screenshots ==
 1. Settings page 
 == Changelog ==
+= 1.0.2 =
+ * Fixed issues to display billing fields and payment fields
+ * Make Compatible with PMP version 1.8.4.5
+ 
 = 1.0.1 =
  * Released as a separate plugin
  

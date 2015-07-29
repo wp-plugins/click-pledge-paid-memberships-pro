@@ -1,0 +1,6 @@
+*** Click & Pledge Changelog ***
+2015.07.27 - version 1.0.1
+ * Released as a separate plugin
+ 
+2014.06.25 - version 1.0.0
+ * Code Released to public

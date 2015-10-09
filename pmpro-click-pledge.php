@@ -8,7 +8,7 @@ Plugin URI: http://manual.clickandpledge.com/PaidMembershipsPro.html
 
 Description: With Click & Pledge, Accept all major credit cards directly on your Paid Memberships Pro website/membership levels with a seamless and secure checkout experience.<a href="https://www.clickandpledge.com/Apply/" target="_blank">Click Here</a> to get a Click & Pledge account.
 
-Version: 1.0.4
+Version: 1.0.5
 
 Author: Click & Pledge
 

@@ -61,6 +61,8 @@ Test CCV: 111 <br>
 == Screenshots ==
 1. Settings page 
 == Changelog ==
+= 1.0.5 =
+ * Fixed recurring issue
 = 1.0.4 =
  * Added SKU for Memberships levels
 = 1.0.3 =

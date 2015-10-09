@@ -492,10 +492,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 				//OrganizationInformation
 				jQuery('#clickandpledge_sku').keyup(function(){
 					limitText(jQuery('#clickandpledge_sku'),jQuery('#clickandpledge_sku_countdown_subscription'),100);
-				});
-				jQuery('#clickandpledge_sku').bind("paste",function(e) {
-					  e.preventDefault();
-				  });
+				});				
 						
 		});
 	</script>
@@ -1042,7 +1039,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 		}
 		
 		public function getPaymentXML( $orderplaced, $case = '' ) 
-		{			
+		{		
 			$dom = new DOMDocument('1.0', 'UTF-8');
 			$root = $dom->createElement('CnPAPI', '');
 			$root->setAttribute("xmlns","urn:APISchema.xsd");
@@ -1057,7 +1054,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$applicationid=$application->appendChild($applicationid);
 			$applicationname=$dom->createElement('Name','CnP_WordPress_PaidMembershipsPro'); 
 			$applicationid=$application->appendChild($applicationname);
-			$applicationversion=$dom->createElement('Version','1.0.4');
+			$applicationversion=$dom->createElement('Version','1.0.5');
 			$applicationversion=$application->appendChild($applicationversion);
 		
 			$request = $dom->createElement('Request', '');
@@ -1342,25 +1339,24 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$trans_type=$transation->appendChild($trans_type);
 			$trans_desc=$dom->createElement('DynamicDescriptor','DynamicDescriptor');
 			$trans_desc=$transation->appendChild($trans_desc); 
-			
 			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('authorize', 'trial'))){		
-				if($orderplaced->BillingFrequency > 1) {
+				if(isset($orderplaced->TotalBillingCycles) && $orderplaced->TotalBillingCycles > 1 || ($orderplaced->BillingFrequency > 1 && $orderplaced->membership_level->billing_limit == 0)) {
 					//Recurring
 					$trans_recurr=$dom->createElement('Recurring','');
 					$trans_recurr=$transation->appendChild($trans_recurr);
 					if($case == 'authorize') {
-						if($orderplaced->BillingFrequency == 0) {
+						if($orderplaced->BillingFrequency > 1 && $orderplaced->membership_level->billing_limit == 0) {
 							$total_installment=$dom->createElement('Installment',999);
 							$total_installment=$trans_recurr->appendChild($total_installment);
 						}
 						else
 						{
-							$total_installment=$dom->createElement('Installment',$orderplaced->BillingFrequency);
+							$total_installment=$dom->createElement('Installment',$orderplaced->TotalBillingCycles);
 							$total_installment=$trans_recurr->appendChild($total_installment);
 						}
 					} else {
 						//Trial
-						if($orderplaced->TrialBillingCycles == 0) {
+						if($orderplaced->BillingFrequency > 1 && $orderplaced->membership_level->billing_limit == 0) {
 							$total_installment=$dom->createElement('Installment',999);
 							$total_installment=$trans_recurr->appendChild($total_installment);
 						}
@@ -1368,6 +1364,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 						{
 							$total_installment=$dom->createElement('Installment',$orderplaced->TrialBillingCycles);
 							$total_installment=$trans_recurr->appendChild($total_installment);
+							
 						}
 					}
 					
@@ -1429,8 +1426,13 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$trans_tax=$transation->appendChild($trans_tax);		
 			}
 			$strParam =$dom->saveXML();
-			//echo $strParam;
-			return $strParam;
+/*			if($case != 'charge') {
+			echo '<pre>';
+			print_r($orderplaced);
+			echo $strParam;	
+			die();		
+			}
+*/			return $strParam;
 		}
 		
 		/*

@@ -1,4 +1,8 @@
 *** Click & Pledge Changelog ***
+2015.10.09 - version 1.0.4
+ * Added SKU for Memberships levels
+2015.8.21 - version 1.0.3
+ * Fixed forums URL issues
 2015.07.29 - version 1.0.2
  * Fixed issues to display billing fields and payment fields
  * Make Compatible with PMP version 1.8.4.5

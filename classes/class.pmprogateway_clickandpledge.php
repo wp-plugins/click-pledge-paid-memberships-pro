@@ -45,6 +45,10 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			add_action('pmpro_after_membership_level_profile_fields', array('PMProGateway_clickandpledge', 'user_profile_fields'));
 			add_action('profile_update', array('PMProGateway_clickandpledge', 'user_profile_fields_save'));
 
+			//custom sku
+			add_action('pmpro_membership_level_after_other_settings',array('PMProGateway_clickandpledge','cnp_custom_function') );
+			add_action('pmpro_save_membership_level',array('PMProGateway_clickandpledge','cnp_custom_function_save') );
+			
 			//updates cron
 			add_action('pmpro_activation', array('PMProGateway_clickandpledge', 'pmpro_activation'));
 			add_action('pmpro_deactivation', array('PMProGateway_clickandpledge', 'pmpro_deactivation'));
@@ -464,6 +468,69 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 		 *
 		 * @since 1.8
 		 */
+		 
+		 static function cnp_custom_function ()
+		 {
+		// $clickandpledge_pmpro_gateways = PMProGateway_clickandpledge::pmpro_gateways('');
+		 //print_r($clickandpledge_pmpro_gateways);
+		 if (get_option('pmpro_gateway') == 'clickandpledge') {
+		 	?>
+	   <script>
+		   jQuery(document).ready(function(){
+				function limitText(limitField, limitCount, limitNum) {
+					re =  /[=\"\<\>\&\\\{\}]/;
+					var isValid = re.test(limitField.val());
+					if(isValid){ limitField.val(limitField.val().replace(/[=\"\<\>\&\\\{\}]/, "")); }
+					if (limitField.val().length > limitNum) {
+						limitField.val( limitField.val().substring(0, limitNum) );
+					} else {
+						limitCount.html (limitNum - limitField.val().length);
+					}
+				}
+				limitText(jQuery('#clickandpledge_sku'),jQuery('#clickandpledge_sku_countdown_subscription'),100);
+				
+				//OrganizationInformation
+				jQuery('#clickandpledge_sku').keyup(function(){
+					limitText(jQuery('#clickandpledge_sku'),jQuery('#clickandpledge_sku_countdown_subscription'),100);
+				});
+				jQuery('#clickandpledge_sku').bind("paste",function(e) {
+					  e.preventDefault();
+				  });
+						
+		});
+	</script>
+			
+			<h3 class="topborder"><?php _e('Click & Pledge Settings :', 'pmpro'); 
+			 $temp_name = 'pmpro_clickandpledge_level_sku_'.$_GET['edit']; 
+			 ?>
+			 </h3>
+			<table class="form-table">
+				<tr>
+					<th valign="top" scope="row"><label>SKU :</label></th><td><input id="clickandpledge_sku" type="text" name="pmpro_clickandpledge_level_sku_<?php echo $_GET['edit']; ?>" value="<?php echo get_option($temp_name); ?>" />
+				<br />
+				Maximum: 100 characters.<br>You have <span id="clickandpledge_sku_countdown_subscription">100</span> characters left.
+				<div>Not allowed characters <code>{}="&<>\</code></div>
+				</td>
+				</tr>
+			</table>
+		 <?php 
+		 }
+		 	return TRUE;
+		 }
+		 //save for SKU filed
+		 static function cnp_custom_function_save ($saveid)
+		 {
+		 $get_options = get_option('pmpro_clickandpledge_level_sku_'.$saveid);
+		 $get_value = $_REQUEST['pmpro_clickandpledge_level_sku_'.$saveid];
+		 if ($get_options == TRUE ) {
+			 update_option( 'pmpro_clickandpledge_level_sku_'.$saveid,$get_value );
+		 } else {
+		 	$get_value = $_REQUEST['pmpro_clickandpledge_level_sku_-1'];
+		 	add_option( 'pmpro_clickandpledge_level_sku_'.$saveid, $get_value);
+		 }
+		 return $saveid;
+		 }
+		 
 		static function pmpro_checkout_order($morder)
 		{
 			return $morder;
@@ -621,7 +688,9 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 		}
 		
 		function process(&$order)
-		{			
+		{		
+		
+			echo '<pre>';
 			if(!extension_loaded('soap')) {
 				$order->error .= " " . __("SOAP Client is need to process C&P Transaction. Please contact administrator.", "pmpro");
 				return false;
@@ -663,7 +732,6 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 					return false;
 				}				
 			}
-			
 			//Transactions start			
 			$result = $this->charge($order);
 			if($result) {				
@@ -989,7 +1057,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$applicationid=$application->appendChild($applicationid);
 			$applicationname=$dom->createElement('Name','CnP_WordPress_PaidMembershipsPro'); 
 			$applicationid=$application->appendChild($applicationname);
-			$applicationversion=$dom->createElement('Version','1.0.2');
+			$applicationversion=$dom->createElement('Version','1.0.4');
 			$applicationversion=$application->appendChild($applicationversion);
 		
 			$request = $dom->createElement('Request', '');
@@ -1160,7 +1228,12 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 				} else {
 					$unitprice=$dom->createElement('UnitPrice',($orderplaced->InitialPayment*100));
 				}				
-				$unitprice=$orderitem->appendChild($unitprice);				
+				$unitprice=$orderitem->appendChild($unitprice);
+				if ( get_option('pmpro_clickandpledge_level_sku_'.$orderplaced->membership_id) ) {
+				$sku_code = $dom->createElement('SKU', substr(get_option('pmpro_clickandpledge_level_sku_'.$orderplaced->membership_id), 0, 100));
+				$sku_code = $orderitem->appendChild($sku_code);
+				}
+				
 			}
 				
 			$receipt=$dom->createElement('Receipt','');
@@ -1270,19 +1343,19 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$trans_desc=$dom->createElement('DynamicDescriptor','DynamicDescriptor');
 			$trans_desc=$transation->appendChild($trans_desc); 
 			
-			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('authorize', 'trial'))){			
-				if($orderplaced->TotalBillingCycles > 1) {
+			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('authorize', 'trial'))){		
+				if($orderplaced->BillingFrequency > 1) {
 					//Recurring
 					$trans_recurr=$dom->createElement('Recurring','');
 					$trans_recurr=$transation->appendChild($trans_recurr);
 					if($case == 'authorize') {
-						if($orderplaced->TotalBillingCycles == 0) {
+						if($orderplaced->BillingFrequency == 0) {
 							$total_installment=$dom->createElement('Installment',999);
 							$total_installment=$trans_recurr->appendChild($total_installment);
 						}
 						else
 						{
-							$total_installment=$dom->createElement('Installment',$orderplaced->TotalBillingCycles);
+							$total_installment=$dom->createElement('Installment',$orderplaced->BillingFrequency);
 							$total_installment=$trans_recurr->appendChild($total_installment);
 						}
 					} else {
@@ -1299,8 +1372,8 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 					}
 					
 					$Periodicity = '';
-					$Periodicity = $this->fetch_periodicity($orderplaced->membership_level->cycle_period, $orderplaced->membership_level->cycle_number);
-					
+					 $Periodicity = $this->fetch_periodicity($orderplaced->membership_level->cycle_period, $orderplaced->membership_level->cycle_number);
+
 					if($Periodicity)
 					{
 					$total_periodicity=$dom->createElement('Periodicity',$Periodicity);
@@ -1347,6 +1420,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('trial', 'authorize'))){
 				$chargeDate=$dom->createElement('ChargeDate',date('y/m/d', strtotime($orderplaced->ProfileStartDate)));
 				$chargeDate=$transation->appendChild($chargeDate);
+
 			}
 			
 			if( isset($orderplaced->tax) && $orderplaced->tax != 0 && !in_array($case, array('trial', 'authorize') ))
@@ -1354,10 +1428,8 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$trans_tax=$dom->createElement('TransactionTax',number_format($orderplaced->tax, 2, '.', '')*100);
 			$trans_tax=$transation->appendChild($trans_tax);		
 			}
-			
 			$strParam =$dom->saveXML();
 			//echo $strParam;
-			//die();
 			return $strParam;
 		}
 		

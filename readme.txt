@@ -6,10 +6,10 @@ Tags:              Paid Memberships Pro, PaidMembershipsPro, pmpro, PMPro, cnp, 
 Author URI:        http://www.clickandpledge.com
 Author:            Click & Pledge
 Requires at least: 3.5 
-Tested up to:      4.2.2
+Tested up to:      4.2.5
 Tested up to:      1.8.4.5 (Paid Memberships Pro)
-Stable tag: 1.0.2
-Version:           1.0.2
+Stable tag: 1.0.4
+Version:           1.0.4
 License: GPLv2 or later
 
 == Description ==
@@ -61,6 +61,10 @@ Test CCV: 111 <br>
 == Screenshots ==
 1. Settings page 
 == Changelog ==
+= 1.0.4 =
+ * Added SKU for Memberships levels
+= 1.0.3 =
+ * Fixed forums URL issues
 = 1.0.2 =
  * Fixed issues to display billing fields and payment fields
  * Make Compatible with PMP version 1.8.4.5
@@ -73,10 +77,10 @@ Test CCV: 111 <br>
 
 == Frequently Asked Questions ==
 = Click & Pledge Overview =
-* <a href="https://forums.clickandpledge.com/content.php?r=255-Click-Pledge-Webinar" target="_blank"> <strong>Recorded Webinar</strong></a>
+* <a href="http://help.clickandpledge.com/customer/portal/articles/2089939" target="_blank"> <strong>Recorded Webinar</strong></a>
 
 = Other helpful resources: =
-* <a href="https://forums.clickandpledge.com/" target="_blank">Click & Pledge Forum</a>
-* <a href="https://forums.clickandpledge.com/list.php?r=category/71-How-to-Videos" target="_blank">Click & Pledge 'How To' Videos</a>
-* <a href="http://manual.clickandpledge.com/" target="_blank">Click & Pledge Manual</a>
+* <a href="http://forums.clickandpledge.com/forum/platform-product-forums/3rd-party-integrations/paid-memberships-pro" target="_blank">Click & Pledge Forum</a>
+* <a href="http://forums.clickandpledge.com/list.php?r=category/71-How-to-Videos" target="_blank">Click & Pledge 'How To' Videos</a>
+* <a href="http://manual.clickandpledge.com/PaidMembershipsPro.html" target="_blank">Click & Pledge Integration Manual with PaidMembershipsPro</a>
 

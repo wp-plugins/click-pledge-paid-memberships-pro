@@ -8,8 +8,8 @@ Author:            Click & Pledge
 Requires at least: 3.5 
 Tested up to:      4.2.5
 Tested up to:      1.8.4.5 (Paid Memberships Pro)
-Stable tag: 1.0.4
-Version:           1.0.4
+Stable tag: 1.0.5
+Version:           1.0.5
 License: GPLv2 or later
 
 == Description ==

@@ -6,10 +6,10 @@ Tags:              Paid Memberships Pro, PaidMembershipsPro, pmpro, PMPro, cnp, 
 Author URI:        http://www.clickandpledge.com
 Author:            Click & Pledge
 Requires at least: 3.5 
-Tested up to:      4.2.5
-Tested up to:      1.8.4.5 (Paid Memberships Pro)
-Stable tag: 1.0.5
-Version:           1.0.5
+Tested up to:      4.3.1
+Tested up to:      1.8.6.2 (Paid Memberships Pro)
+Stable tag: 1.0.6
+Version:           1.0.6
 License: GPLv2 or later
 
 == Description ==
@@ -61,6 +61,9 @@ Test CCV: 111 <br>
 == Screenshots ==
 1. Settings page 
 == Changelog ==
+= 1.0.6 =
+ * Fixed The total number of recurring billing cycles for this level, including
+the trial period (if applicable) but not including the initial payment
 = 1.0.5 =
  * Fixed recurring issue
 = 1.0.4 =

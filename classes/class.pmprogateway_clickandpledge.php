@@ -492,9 +492,12 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 				//OrganizationInformation
 				jQuery('#clickandpledge_sku').keyup(function(){
 					limitText(jQuery('#clickandpledge_sku'),jQuery('#clickandpledge_sku_countdown_subscription'),100);
-				});				
+				});	
+
+						
 						
 		});
+		  
 	</script>
 			
 			<h3 class="topborder"><?php _e('Click & Pledge Settings :', 'pmpro'); 
@@ -519,7 +522,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 		 {
 		 $get_options = get_option('pmpro_clickandpledge_level_sku_'.$saveid);
 		 $get_value = $_REQUEST['pmpro_clickandpledge_level_sku_'.$saveid];
-		 if ($get_options == TRUE ) {
+		 if ($get_options == TRUE || $get_value != NULL) {
 			 update_option( 'pmpro_clickandpledge_level_sku_'.$saveid,$get_value );
 		 } else {
 		 	$get_value = $_REQUEST['pmpro_clickandpledge_level_sku_-1'];
@@ -687,7 +690,6 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 		function process(&$order)
 		{		
 		
-			echo '<pre>';
 			if(!extension_loaded('soap')) {
 				$order->error .= " " . __("SOAP Client is need to process C&P Transaction. Please contact administrator.", "pmpro");
 				return false;
@@ -729,6 +731,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 					return false;
 				}				
 			}
+			
 			//Transactions start			
 			$result = $this->charge($order);
 			if($result) {				
@@ -752,11 +755,21 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 							$order->status = "success";	
 							if(floatval($order->PaymentAmount) == 0) {
 								return true;
-							}							
+							}
+							
+														
 							$trial_period_days = ceil(abs(strtotime(date("Y-m-d")) - strtotime($order->ProfileStartDate)) / 86400);							
 							if(!empty($order->TrialBillingCycles))						
 							{							
 								$trialOccurrences = (int)$order->TrialBillingCycles;
+								
+								// If Billing Period less then trial billing period
+								if((int)$order->TotalBillingCycles!=0 && (int)$order->TotalBillingCycles<$trialOccurrences)
+								{
+									return true;
+								}
+								
+								
 								if($order->TrialBillingPeriod == "Year")
 									$trial_period_days = $trial_period_days + (365 * $order->TrialBillingFrequency * $trialOccurrences);	//annual
 								elseif($order->BillingPeriod == "Day")
@@ -771,6 +784,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 							$order->ProfileStartDate = date("Y-m-d", strtotime("+ " . $trial_period_days . " Day")) . "T0:0:0";
 							if(floatval($order->PaymentAmount) != 0) 
 							{
+								$order->TotalBillingCycles = (int)$order->TotalBillingCycles-(int)$order->TrialBillingCycles;
 								$auth = $this->authorize($order, 'authorize'); //Recurring
 								
 								if( $auth )
@@ -950,7 +964,8 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			if(empty($order->code))
 				$order->code = $order->getRandomCode();
 			
-			$xml = $this->getPaymentXML( $order, 'charge' );			
+			$xml = $this->getPaymentXML( $order, 'charge' );
+					
 			$response = $this->sendPayment( $xml );
 			
 			if($response === FALSE)
@@ -1054,7 +1069,7 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			$applicationid=$application->appendChild($applicationid);
 			$applicationname=$dom->createElement('Name','CnP_WordPress_PaidMembershipsPro'); 
 			$applicationid=$application->appendChild($applicationname);
-			$applicationversion=$dom->createElement('Version','1.0.5');
+			$applicationversion=$dom->createElement('Version','1.0.6');
 			$applicationversion=$application->appendChild($applicationversion);
 		
 			$request = $dom->createElement('Request', '');
@@ -1213,7 +1228,8 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 				$itemid=$dom->createElement('ItemID',($p+1));
 				$itemid=$orderitem->appendChild($itemid);				
 			
-				$itemname=$dom->createElement('ItemName',$this->safeString(trim($orderplaced->membership_level->name), 50));
+				//$itemname=$dom->createElement('ItemName',$this->safeString(trim($orderplaced->membership_level->name), 100));
+				$itemname=$dom->createElement('ItemName',$this->safeString(substr($orderplaced->membership_level->name,0,100), 100));
 				$itemname=$orderitem->appendChild($itemname);
 				$quntity=$dom->createElement('Quantity',1);
 				$quntity=$orderitem->appendChild($quntity);					
@@ -1388,19 +1404,31 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 			
 			$trans_totals=$dom->createElement('CurrentTotals','');
 			$trans_totals=$transation->appendChild($trans_totals);				
-			
-			if( isset($orderplaced->tax) && $orderplaced->tax != 0 && !in_array($case, array('trial', 'authorize') ))
-			{
+			$tax_new = 0;
+			if( isset($orderplaced->tax) && $orderplaced->tax != 0 && in_array($case, array('trial', 'authorize','charge') ))
+			{	
+				if (!in_array($case, array('trial', 'authorize'))) { 
 				$total_tax=$dom->createElement('TotalTax',number_format($orderplaced->tax, 2, '.', '')*100);
 				$total_tax=$trans_totals->appendChild($total_tax);
+				} else if ($case == 'authorize') {
+				$tax_new = ($orderplaced->tax * 100) / $orderplaced->subtotal;
+				$tax_new = ($orderplaced->PaymentAmount * $tax_new) / 100; 
+				$total_tax=$dom->createElement('TotalTax',number_format($tax_new, 2, '.', '')*100);
+				$total_tax=$trans_totals->appendChild($total_tax);
+				} else {
+				$tax_new = ($orderplaced->tax * 100) / $orderplaced->subtotal;
+				$tax_new = ($orderplaced->TrialAmount * $tax_new) / 100; 
+				$total_tax=$dom->createElement('TotalTax',number_format($tax_new, 2, '.', '')*100);
+				$total_tax=$trans_totals->appendChild($total_tax);
+				}
 			}
 			
 			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('trial', 'authorize'))){
 				if($case == 'authorize') {
-					$total_amount=$dom->createElement('Total',($orderplaced->PaymentAmount*100));
+					$total_amount=$dom->createElement('Total',(($orderplaced->PaymentAmount+number_format($tax_new, 2, '.', ''))*100));
 					$total_amount=$trans_totals->appendChild($total_amount);
 				} else {
-					$total_amount=$dom->createElement('Total',($orderplaced->TrialAmount*100));
+					$total_amount=$dom->createElement('Total',(($orderplaced->TrialAmount+number_format($tax_new, 2, '.', ''))*100));
 					$total_amount=$trans_totals->appendChild($total_amount);
 				}
 			} else {
@@ -1414,25 +1442,33 @@ require_once(WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'paid-memberships-pro' . DIRE
 				$trans_coupon=$transation->appendChild($trans_coupon);
 			}
 			
+			if( isset($orderplaced->tax) && $orderplaced->tax != 0 && in_array($case, array('trial', 'authorize','charge') ))
+			{
+				if (!in_array($case, array('trial', 'authorize'))) { 
+					$trans_tax=$dom->createElement('TransactionTax',number_format($orderplaced->tax, 2, '.', '')*100);
+					$trans_tax=$transation->appendChild($trans_tax);
+				} else if ($case == 'authorize') {
+					$trans_tax=$dom->createElement('TransactionTax',number_format($tax_new, 2, '.', '')*100);
+					$trans_tax=$transation->appendChild($trans_tax);
+				} else {
+					$trans_tax=$dom->createElement('TransactionTax',number_format($tax_new, 2, '.', '')*100);
+					$trans_tax=$transation->appendChild($trans_tax);
+				}		
+			}
 			if(pmpro_isLevelRecurring($orderplaced->membership_level) && in_array($case, array('trial', 'authorize'))){
 				$chargeDate=$dom->createElement('ChargeDate',date('y/m/d', strtotime($orderplaced->ProfileStartDate)));
 				$chargeDate=$transation->appendChild($chargeDate);
 
 			}
-			
-			if( isset($orderplaced->tax) && $orderplaced->tax != 0 && !in_array($case, array('trial', 'authorize') ))
-			{
-			$trans_tax=$dom->createElement('TransactionTax',number_format($orderplaced->tax, 2, '.', '')*100);
-			$trans_tax=$transation->appendChild($trans_tax);		
-			}
 			$strParam =$dom->saveXML();
-/*			if($case != 'charge') {
+			/*if($case == 'authorize') {
 			echo '<pre>';
-			print_r($orderplaced);
-			echo $strParam;	
-			die();		
-			}
-*/			return $strParam;
+			//print_r($orderplaced);
+						echo $strParam;	
+			die();
+			}*/
+
+			return $strParam;
 		}
 		
 		/*

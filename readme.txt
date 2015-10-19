@@ -8,8 +8,8 @@ Author:            Click & Pledge
 Requires at least: 3.5 
 Tested up to:      4.3.1
 Tested up to:      1.8.6.2 (Paid Memberships Pro)
-Stable tag: 1.0.6
-Version:           1.0.6
+Stable tag: 1.0.7
+Version:           1.0.7
 License: GPLv2 or later
 
 == Description ==
@@ -61,6 +61,8 @@ Test CCV: 111 <br>
 == Screenshots ==
 1. Settings page 
 == Changelog ==
+= 1.0.7 =
+ * Fixed tax handling issue when initial amount is zero
 = 1.0.6 =
  * Fixed The total number of recurring billing cycles for this level, including
 the trial period (if applicable) but not including the initial payment

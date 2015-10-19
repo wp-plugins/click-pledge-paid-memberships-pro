@@ -1,4 +1,6 @@
 *** Click & Pledge Changelog ***
+2015.10.19 - version 1.0.7
+ * Fixed tax handling issue when initial amount is zero
 2015.10.15 - version 1.0.6
  * Fixed The total number of recurring billing cycles for this level, including
 the trial period (if applicable) but not including the initial payment
